@@ -500,7 +500,6 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
                     {
                         "source": """
 
-                           Object.defineProperty(window, "navigator", {
                                 Object.defineProperty(window, "navigator", {
                                   value: new Proxy(navigator, {
                                     has: (target, key) => (key === "webdriver" ? false : key in target),
@@ -763,7 +762,9 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
 
     def quit(self):
         try:
+            self.service.stop()
             self.service.process.kill()
+            self.command_executor.close()
             logger.debug("webdriver process ended")
         except (AttributeError, RuntimeError, OSError):
             pass
@@ -840,7 +841,10 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             self.service.process.kill()
         except:  # noqa
             pass
-        self.quit()
+        try:
+            self.quit()
+        except OSError:
+            pass
 
     @classmethod
     def _ensure_close(cls, self):
